@@ -1,11 +1,18 @@
 use anyhow::{anyhow, bail};
 use bitcoin::{Address, Txid};
+use esplora_client::{AsyncClient, Builder};
+use once_cell::sync::Lazy;
 use reqwest::{Client, Error, Response};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
 
 const ESPLORA_FAUCET_URL: &str = "https://faucet.mutinynet.com";
+
+pub const FAUCET_CLIENT: Lazy<FaucetClient> = Lazy::new(|| {
+    let faucet = FaucetClient::new(ESPLORA_FAUCET_URL);
+    faucet
+});
 
 #[derive(Debug, Clone)]
 pub struct FaucetClient {
@@ -28,11 +35,7 @@ impl FaucetClient {
         }
     }
 
-    pub async fn claim_tokens(
-        &self,
-        adddr: &str,
-        amount: u32,
-    ) -> anyhow::Result<FaucetResponse, Error> {
+    pub async fn claim_tokens(&self, adddr: &str, amount: u32) -> anyhow::Result<FaucetResponse> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(reqwest::header::ACCEPT, "*/*".parse().unwrap());
         headers.insert(reqwest::header::CONNECTION, "keep-alive".parse().unwrap());
@@ -60,7 +63,7 @@ impl FaucetClient {
             .await?;
 
         if resp.status().is_server_error() || resp.status().is_client_error() {
-            bail!(format!(
+            anyhow::bail!(format!(
                 "HttpResponse: {}, {}",
                 resp.status().as_u16(),
                 resp.text().await?
@@ -74,11 +77,13 @@ impl FaucetClient {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::client;
     use bitcoin::hashes::sha1::Hash;
     use reqwest::header::HeaderMap;
     use reqwest::Error;
     use std::collections::HashMap;
     use std::time::Instant;
+    use std::{thread, time};
 
     #[tokio::test]
     async fn test_faucet_request() -> Result<(), Error> {
@@ -126,9 +131,17 @@ mod test {
         let addr = "tb1ql9mjwcp9swms3hm6kyvp832myv4ujmqcpmn7az";
 
         let faucet = FaucetClient::new(ESPLORA_FAUCET_URL);
-
-        let resp = faucet.claim_tokens(addr, 10000).await.unwrap();
+        let resp = faucet.claim_tokens(addr, 100000).await.unwrap();
 
         println!("response: {:?}", resp);
+        println!("response.txid: {:?}", resp.txid);
+        println!("response.address: {:?}", resp.address);
+
+        let wait_time = time::Duration::from_secs(60);
+        thread::sleep(wait_time);
+
+        let expect = client::CLIENT.get_tx_status(&resp.txid).await.unwrap();
+        println!("expect: {:?}", expect);
+        assert!(expect.block_height.is_some());
     }
 }

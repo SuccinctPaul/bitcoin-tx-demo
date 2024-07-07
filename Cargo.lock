@@ -119,6 +119,7 @@ dependencies = [
  "bitcoin",
  "esplora-client",
  "once_cell",
+ "rand",
  "reqwest",
  "secp256k1",
  "serde",
@@ -233,8 +234,7 @@ dependencies = [
 [[package]]
 name = "esplora-client"
 version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b546e91283ebfc56337de34e0cf814e3ad98083afde593b8e58495ee5355d0e"
+source = "git+https://github.com/SuccinctPaul/rust-esplora-client.git?branch=feat/more-api#d3eb5d1b13720d2f3927c92d988ee65ca479d704"
 dependencies = [
  "bitcoin",
  "hex-conservative",
