@@ -50,5 +50,16 @@ mod test {
     #[tokio::test]
     async fn test_address() {
         let addr = Address::from_str("tb1ql9mjwcp9swms3hm6kyvp832myv4ujmqcpmn7az").unwrap();
+
+        let addr2 =
+            Address::from_str("bc1pgllnmtxs0g058qz7c6qgaqq4qknwrqj9z7rqn9e2dzhmcfmhlu4sfadf5e")
+                .expect("address")
+                .require_network(Network::Bitcoin)
+                .expect("mainnet");
+
+        println!("addr2: {:?}", addr2);
+        println!("addr2: {:?}", addr2);
+        let addr3 = addr2.to_string();
+        println!("addr3: {:?}", addr3);
     }
 }
