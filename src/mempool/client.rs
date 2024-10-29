@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 const ESPLORA_URL: &str = "https://mutinynet.com/api";
 
 pub const CLIENT: Lazy<AsyncClient> = Lazy::new(|| {
-    let builder = Builder::new(crate::client::ESPLORA_URL);
+    let builder = Builder::new(crate::mempool::client::ESPLORA_URL);
 
     let client = builder.build_async().unwrap();
     client
@@ -12,7 +12,7 @@ pub const CLIENT: Lazy<AsyncClient> = Lazy::new(|| {
 
 #[cfg(test)]
 mod test {
-    use crate::client::CLIENT;
+    use crate::mempool::client::CLIENT;
     use bitcoin::{Address, Network, OutPoint, ScriptHash, Transaction, TxIn, TxOut, Txid};
     use std::str::FromStr;
 

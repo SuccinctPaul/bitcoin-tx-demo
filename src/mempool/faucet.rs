@@ -77,7 +77,7 @@ impl FaucetClient {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::client;
+    use crate::mempool::client;
     use bitcoin::hashes::sha1::Hash;
     use reqwest::header::HeaderMap;
     use reqwest::Error;
@@ -131,7 +131,7 @@ mod test {
         let addr = "tb1ql9mjwcp9swms3hm6kyvp832myv4ujmqcpmn7az";
 
         let faucet = FaucetClient::new(ESPLORA_FAUCET_URL);
-        let resp = faucet.claim_tokens(addr, 100000).await.unwrap();
+        let resp = faucet.claim_tokens(addr, 100_000).await.unwrap();
 
         println!("response: {:?}", resp);
         println!("response.txid: {:?}", resp.txid);

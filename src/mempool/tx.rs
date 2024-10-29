@@ -2,7 +2,7 @@
 mod test {
     use std::str::FromStr;
 
-    use crate::client::CLIENT;
+    use crate::mempool::client::CLIENT;
     use bitcoin::hashes::Hash;
     use bitcoin::key::{Keypair, TapTweak, TweakedKeypair, UntweakedPublicKey};
     use bitcoin::locktime::absolute;
