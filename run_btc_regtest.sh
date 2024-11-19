@@ -1,6 +1,6 @@
 # Ref: https://github.com/SuccinctPaul/scripts-box/blob/35600dc45979a18cb82da991119d2b9326d28c93/bitcoin/run_btc_regtest.sh
 docker run \
-  -v ~/.bitcoin/data/regtest:/home/bitcoin/.bitcoin \
+  -v ~/.bitcoin/data:/home/bitcoin/.bitcoin \
   -d \
   --name bitcoin-regtest \
   -p 18443:18443 \
