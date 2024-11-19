@@ -3,8 +3,10 @@ use bitcoincore_rpc::bitcoincore_rpc_json::{
 };
 use bitcoincore_rpc::{Auth, RpcApi};
 use dotenv::dotenv;
+use std::str::FromStr;
 
 pub mod test;
+pub mod utils;
 
 pub struct BitcoinWallet {
     // wallet name
@@ -36,6 +38,9 @@ impl BitcoinWallet {
     pub fn mempool_info(&self) -> anyhow::Result<GetMempoolInfoResult> {
         Ok(self.rpc.get_mempool_info()?)
     }
+    pub fn version(&self) -> anyhow::Result<usize> {
+        Ok(self.network_info()?.version)
+    }
 
     fn new_wallet_client(wallet_name: &str) -> anyhow::Result<Self> {
         let url = format!("{}{}{}", Self::get_rpc(), "/wallet/", wallet_name);
@@ -61,20 +66,19 @@ impl BitcoinWallet {
 
         let wallet_path = if data_dir.is_ok() {
             let data_dir = data_dir?;
-            let path = std::path::Path::new("~/.bitcoin/data/regtest");
-            println!("data_dir: {:?}", path.to_path_buf());
-            assert!(path.exists());
-
             let path = std::path::Path::new(&data_dir);
-            assert!(path.exists());
+            // assert!(path.exists());
             format!("{}{}{}", data_dir, "/wallets/", wallet_name)
         } else {
             panic!("No DATADIR found in .env file");
         };
 
         let path = std::path::Path::new(&wallet_path);
-
+        println!("path: {:?}", path.to_path_buf());
+        // TODO: failed to check exists of target wallet path.
         if path.exists() {
+            // if true {
+            println!("wallet exists, load it , {:?}", path.to_path_buf());
             let load_wallet = rpc.load_wallet(wallet_name);
             if load_wallet.is_err() {
                 panic!(
@@ -85,14 +89,14 @@ impl BitcoinWallet {
             }
         } else {
             println!("wallet isn't exists, create it , {:?}", path.to_path_buf());
-            let create_wallet = rpc.create_wallet(wallet_name, None, None, None, Some(false));
-            if create_wallet.is_err() {
-                panic!(
-                    "Fail to create_wallet: {:#?}, error: {}",
-                    wallet_name,
-                    create_wallet.err().unwrap()
-                );
-            }
+            // let create_wallet = rpc.create_wallet(wallet_name, None, None, None, Some(false));
+            // if create_wallet.is_err() {
+            //     panic!(
+            //         "Fail to create_wallet: {:#?}, error: {}",
+            //         wallet_name,
+            //         create_wallet.err().unwrap()
+            //     );
+            // }
         }
         Ok(())
     }
