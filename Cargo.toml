@@ -28,3 +28,4 @@ serde = { version = "1.0.203", features = ["derive"] }
 
 
 dotenv = "*"
+lazy_static = "1.5.0"
