@@ -1,5 +1,11 @@
+use bitcoin::address::AddressData::P2sh;
 use bitcoin::bip32::Xpriv;
-use bitcoin::{Address, CompressedPublicKey, KnownHrp, Network, PrivateKey, PublicKey};
+use bitcoin::hashes::{hash160, Hash};
+use bitcoin::opcodes::all::OP_CHECKSIG;
+use bitcoin::{
+    Address, CompressedPublicKey, KnownHrp, Network, PrivateKey, PubkeyHash, PublicKey, Script,
+    ScriptBuf,
+};
 use lazy_static::lazy_static;
 use secp256k1::XOnlyPublicKey;
 use std::str::FromStr;
@@ -10,13 +16,14 @@ lazy_static! {
 
 pub struct Keygen;
 impl Keygen {
-    pub fn gen_sk() -> PrivateKey {
+    pub fn gen_sk(network: Network) -> PrivateKey {
         PrivateKey {
-            network: Network::Regtest.into(),
+            network: network.into(),
             inner: secp256k1::SecretKey::new(&mut secp256k1::rand::thread_rng()),
             compressed: true,
         }
     }
+
     pub fn parsing_private_key(private_key_str: &str) -> anyhow::Result<PrivateKey> {
         let private_key = if let Ok(pk) = PrivateKey::from_wif(private_key_str) {
             pk
@@ -35,6 +42,21 @@ impl Keygen {
     ////////////////////////////////////////////////
     //////////// gen address from public key
     ////////////////////////////////////////////////
+    pub(crate) fn p2sh_addr_from_pk(
+        public_key: &PublicKey,
+        network: Network,
+    ) -> anyhow::Result<Address> {
+        // TODO: needs test.
+        // Create a P2WSH address
+        let p2pk_script = Script::builder()
+            .push_key(&public_key)
+            .push_opcode(OP_CHECKSIG)
+            .into_script();
+
+        let addr = Address::p2sh(&p2pk_script, network)?;
+        Ok(addr)
+    }
+
     pub fn p2wpkh_addr_from_pk(pk: &PublicKey, network: Network) -> anyhow::Result<Address> {
         let pk = CompressedPublicKey::try_from(*pk)?;
         let addr = Address::p2wpkh(&pk, network);
@@ -43,7 +65,7 @@ impl Keygen {
     }
 
     pub fn p2pkh_addr_from_pk(pk: PublicKey, network: Network) -> anyhow::Result<Address> {
-        let addr = Address::p2pkh(pk, Network::Regtest);
+        let addr = Address::p2pkh(pk, network);
         Ok(addr)
     }
 
@@ -57,13 +79,10 @@ impl Keygen {
 mod test {
     use super::*;
 
-    lazy_static! {
-        static ref PRIVATE_KEY: PrivateKey = Keygen::gen_sk();
-        static ref PUBLIC_KEY: PublicKey = { Keygen::pk_from_sk(&PRIVATE_KEY) };
-    }
-
     #[test]
     fn test_gen_regtest() {
+        let PRIVATE_KEY: PrivateKey = Keygen::gen_sk(Network::Regtest);
+        let PUBLIC_KEY: PublicKey = Keygen::pk_from_sk(&PRIVATE_KEY);
         println!("private_key: {}", PRIVATE_KEY.to_string());
         println!("public_key: {}", PUBLIC_KEY.to_string());
 
@@ -102,5 +121,17 @@ mod test {
         println!("p2tr_addr: {}", p2tr_addr.to_string());
         println!("p2wpkh_addr: {}", p2wpkh_addr.to_string());
         println!("p2pkh_addr: {}", p2pkh_addr.to_string());
+    }
+
+    #[test]
+    fn test_address_from_str() {
+        // generate with:
+        //      bitcoin-cli -regtest getnewaddress
+        let addr_str = "bcrt1qqxwdhsuumpf5hjelafr0mmpqsds5gcrvp5y0z3";
+
+        let addr = Address::from_str(addr_str).unwrap().assume_checked();
+
+        println!("addr: {}", addr.to_string());
+        println!("addr type: {}", addr.address_type().unwrap()); // p2wpkh
     }
 }
