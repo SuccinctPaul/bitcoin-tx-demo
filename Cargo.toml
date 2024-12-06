@@ -4,28 +4,25 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bitcoin = { version = "0.32", features = ["serde", "rand-std"], default-features = false }
-bitcoincore-rpc = { version = "0.19.0" }
-#bitcoind-json-rpc-types = { version = "0.3.0" }
-
+rand = "*"
+dotenv = "*"
+anyhow = "*"
+lazy_static = "1.5.0"
 secp256k1 = { version = "0.29.0", default-features = false, features = ["hashes", "alloc", "rand-std"] }
 
-rand = "*"
-
-
 tokio = { version = "*", features = ["full"] }
-#esplora-client = "*"
-esplora-client = { git = "https://github.com/SuccinctPaul/rust-esplora-client.git", branch = "feat/more-api" }
-
-
-reqwest = { version = "0.11", features = ["json", "socks"] }
-anyhow = "*"
-
-
 once_cell = "1.19.0"
 serde_json = "1.0.120"
 serde = { version = "1.0.203", features = ["derive"] }
 
+# note rpc
+bitcoin = { version = "0.32", features = ["serde", "rand-std", "bitcoinconsensus"], default-features = false }
+bitcoincore-rpc = { version = "0.19.0" }
 
-dotenv = "*"
-lazy_static = "1.5.0"
+#mempool client
+esplora-client = { git = "https://github.com/SuccinctPaul/rust-esplora-client.git", branch = "feat/more-api" }
+reqwest = { version = "0.11", features = ["json", "socks"] }
+
+
+
+
