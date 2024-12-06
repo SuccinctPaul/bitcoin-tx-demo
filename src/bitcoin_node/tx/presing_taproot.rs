@@ -27,19 +27,18 @@ const SPEND_AMOUNT: Amount = Amount::from_sat(5_000_000);
 const GAS_FEE: Amount = Amount::from_sat(1_000);
 
 #[test]
-#[ignore]
 fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     let secp = Secp256k1::new();
     // 1. pre utxo_a
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
-    let pre_txid_a = "ff8854374435da6afc26d532ef69b91cb938c247d6b1bbac411e151fb508d548";
+    let pre_txid_a = "9c677385db8fa60f318561fd2235622ba77c5bab73155eac40a40ffe1324c224";
     let pre_vout_a = 0;
     let amount_in_sats_a = Amount::from_btc(25.0).unwrap();
     // pre utxo_b
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1p0p3rvwww0v9znrclp00uneq8ytre9kj922v8fxhnezm3mgsmn9usdxaefc"]'
-    let pre_txid_b = "fd6349e15abc0438a4b2f7c57a54392514f84d8335324a3a4c5fc13f2422d068";
+    let pre_txid_b = "b7368436117338ff1c3907c25a368c68acd8db852ff8c8a9bfd64fe05e8927b1";
     let pre_vout_b = 0;
-    let amount_in_sats_b = Amount::from_btc(25.0).unwrap();
+    let amount_in_sats_b = Amount::from_btc(0.05000000).unwrap();
     ///////////////////////////////////////////////////
     ////////// sign a
     ///////////////////////////////////////////////////
@@ -87,7 +86,7 @@ fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     let mut sighasher = SighashCache::new(&mut unsigned_tx);
     // 5.1 signed by a
     let input_index_a = 0;
-    let sighash_type = TapSighashType::Single;
+    let sighash_type = TapSighashType::SinglePlusAnyoneCanPay;
     let sighash = sighasher
         .taproot_key_spend_signature_hash(input_index_a, &prevouts, sighash_type)
         .expect("failed to construct sighash");
@@ -142,7 +141,7 @@ fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     let input_index_b = 1;
     // let sighash_type = TapSighashType::AllPlusAnyoneCanPay;// this work also
     let mut sighasher = SighashCache::new(&mut presigned_tx);
-    let sighash_type_b = TapSighashType::AllPlusAnyoneCanPay;
+    let sighash_type_b = TapSighashType::SinglePlusAnyoneCanPay;
     let sighash = sighasher
         .taproot_key_spend_signature_hash(input_index_b, &prevouts_b, sighash_type_b)
         .expect("failed to construct sighash");
