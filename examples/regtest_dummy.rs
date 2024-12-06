@@ -1,4 +1,6 @@
-//! Example of taproot PSBT workflow
+//! Copy example of taproot PSBT workflow
+//！This is copy from https://github.com/rust-bitcoin/rust-bitcoin/blob/42e5043b33a5959aa9ca3115e96347cc768d31f1/bitcoin/examples/taproot-psbt.rs
+//! For local wallet
 
 // We use the alias `alias bt='bitcoin-cli -regtest'` for brevity.
 

@@ -31,14 +31,14 @@ fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     let secp = Secp256k1::new();
     // 1. pre utxo_a
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
-    let pre_txid_a = "9c677385db8fa60f318561fd2235622ba77c5bab73155eac40a40ffe1324c224";
+    let pre_txid_a = "d29d9439ebc433dfae790f118ab23eb1871cd82d3f0f01e104fd3dde27e34a9c";
     let pre_vout_a = 0;
     let amount_in_sats_a = Amount::from_btc(25.0).unwrap();
     // pre utxo_b
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1p0p3rvwww0v9znrclp00uneq8ytre9kj922v8fxhnezm3mgsmn9usdxaefc"]'
-    let pre_txid_b = "b7368436117338ff1c3907c25a368c68acd8db852ff8c8a9bfd64fe05e8927b1";
-    let pre_vout_b = 0;
-    let amount_in_sats_b = Amount::from_btc(0.05000000).unwrap();
+    let pre_txid_b = "153c18e665096e0859533a6adf71e61c1d780976fbc3d217d046ba60b0637c7d";
+    let pre_vout_b = 2;
+    let amount_in_sats_b = Amount::from_btc(24.99999000).unwrap();
     ///////////////////////////////////////////////////
     ////////// sign a
     ///////////////////////////////////////////////////
@@ -165,7 +165,8 @@ fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     // BOOM! Transaction signed and ready to broadcast.
     println!("tx_id {:?}", txid);
     println!("tx_str {:?}", tx_hex_str);
-
+    // bitcoin-cli -rpcwallet=benefactor sendrawtransaction xxxx
+    //
     Ok(())
 }
 
@@ -175,7 +176,7 @@ fn test_sign_taproot_ab_to_c_with_presigned_ab() -> anyhow::Result<()> {
 
     // 1. pre utxo_a
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
-    let pre_txid_a = "ff8854374435da6afc26d532ef69b91cb938c247d6b1bbac411e151fb508d548";
+    let pre_txid_a = "4a4ee7ba06f2edf8a70a4a3d9100297f67540afac1f9a070439e46d0aff9db06";
     let pre_vout_a = 0;
     let amount_in_sats_a = Amount::from_btc(25.0).unwrap();
     // Get a keypair we control. In a real application these would come from a stored secret.
@@ -191,9 +192,9 @@ fn test_sign_taproot_ab_to_c_with_presigned_ab() -> anyhow::Result<()> {
 
     // 2. pre utxo_b
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1p0p3rvwww0v9znrclp00uneq8ytre9kj922v8fxhnezm3mgsmn9usdxaefc"]'
-    let pre_txid_b = "fd6349e15abc0438a4b2f7c57a54392514f84d8335324a3a4c5fc13f2422d068";
+    let pre_txid_b = "cc7a307941737448f63956ca1587768dce4dff1d2dc372a73a60145b79528bfd";
     let pre_vout_b = 0;
-    let amount_in_sats_b = Amount::from_btc(25.0).unwrap();
+    let amount_in_sats_b = Amount::from_btc(12.5).unwrap();
     // Get a keypair we control. In a real application these would come from a stored secret.
     let keypair_b = senders_keys(&secp, USER_B_PRIVATE_KEY);
     let (internal_key_b, _parity) = keypair_b.x_only_public_key();
@@ -316,7 +317,7 @@ fn test_sign_taproot_ab_to_c_with_presigned_ab() -> anyhow::Result<()> {
 #[test]
 fn test_sign_taproot_a_to_bc_with_presiend_a() -> anyhow::Result<()> {
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
-    let pre_txid = "6049e411b7172c6ef8c9ac655904301640049e71d7d90233a45498b28447994b";
+    let pre_txid = "35dc86d506b74d091984061403098eb7fc9a0d569dc9a80290e2db46ffc0671a";
     let pre_vout = 0;
     let amount_in_sats = Amount::from_btc(25.0).unwrap();
     ///////////////////////////////////////////////////
