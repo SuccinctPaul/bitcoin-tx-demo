@@ -65,3 +65,32 @@ pub fn senders_keys<C: Signing>(secp: &Secp256k1<C>, sk: &str) -> Keypair {
     let sk = sk.private_key;
     Keypair::from_secret_key(secp, &sk)
 }
+
+#[cfg(test)]
+mod test {
+    use crate::bitcoin_node::tx::{USER_A_PRIVATE_KEY, USER_A_PUBLIC_KEY};
+    use crate::keygen::Keygen;
+    use bitcoin::bip32::Xpriv;
+    use bitcoin::{Network, PublicKey, ScriptBuf};
+    use secp256k1::{Keypair, XOnlyPublicKey};
+    use std::str::FromStr;
+
+    #[test]
+    fn p2tr_lock_script_test() -> anyhow::Result<()> {
+        let extend_sk = Xpriv::from_str(USER_A_PRIVATE_KEY)?;
+        let private_key = extend_sk.to_priv();
+        let public_key = PublicKey::from_str(USER_A_PUBLIC_KEY)?;
+        let address = Keygen::p2tr_addr_from_pk(public_key, Network::Regtest)?;
+        let x_only_public_key: XOnlyPublicKey = public_key.into();
+        let addr_script_pubkey = address.script_pubkey();
+
+        let secp = secp256k1::Secp256k1::new();
+        let keypair = Keypair::from_secret_key(&secp, &private_key.inner);
+        let (internal_key, _parity) = keypair.x_only_public_key();
+        let p2tr_lock_script = ScriptBuf::new_p2tr(&secp, x_only_public_key, None);
+        assert_eq!(p2tr_lock_script, addr_script_pubkey);
+        assert_eq!(internal_key, x_only_public_key);
+
+        Ok(())
+    }
+}
