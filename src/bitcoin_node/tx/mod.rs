@@ -4,6 +4,7 @@ use bitcoin::{Amount, OutPoint, ScriptBuf, TxOut, Txid};
 use secp256k1::{Keypair, Secp256k1, Signing, Verification};
 use std::str::FromStr;
 
+mod presing_taproot;
 pub mod sign_taproot;
 
 // User BTC regtest info:
