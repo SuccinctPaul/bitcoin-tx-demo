@@ -7,6 +7,7 @@ use bitcoincore_rpc::{Auth, RpcApi};
 use dotenv::dotenv;
 
 pub mod chain_info;
+mod default;
 pub mod test;
 pub mod utils;
 
