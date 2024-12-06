@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Reference https://github.com/rust-bitcoin/rust-bitcoin/blob/master/bitcoin/examples/taproot-psbt.rs
+#   or examples/regtest_dummy.rs
 alias bt='bitcoin-cli -regtest'
 
 #2.1) Run `bt -named createwallet wallet_name=benefactor blank=true` to create a blank wallet with the name "benefactor"
