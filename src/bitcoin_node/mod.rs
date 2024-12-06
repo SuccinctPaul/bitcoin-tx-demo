@@ -5,6 +5,7 @@ pub mod account;
 pub mod config;
 pub mod regtest;
 mod test;
+mod tx;
 pub mod wallet;
 
 pub struct BitcoinClient;

@@ -127,11 +127,30 @@ mod test {
     fn test_address_from_str() {
         // generate with:
         //      bitcoin-cli -regtest getnewaddress
-        let addr_str = "bcrt1qqxwdhsuumpf5hjelafr0mmpqsds5gcrvp5y0z3";
+        let addr_str = "bc1qj638mlpa967p2s893cglz4y4cpk4qvce5zdv4uqzlc7vqxhju5gsa2nm57";
 
         let addr = Address::from_str(addr_str).unwrap().assume_checked();
+        // let addr = Address::from_str(addr_str).unwrap();
 
         println!("addr: {}", addr.to_string());
         println!("addr type: {}", addr.address_type().unwrap()); // p2wpkh
+    }
+
+    #[test]
+    fn test_gen_regtest_addr_by_sk() -> anyhow::Result<()> {
+        let sk = "tprv8jzau9CfsdkXPkVBGi313RjQvsXggNwC4SZEBm3ohYAHQrHvBBG9GrPwMRWmzvB2UgkH7vEEjoMwia8kiY1jo6FzeshAfEw8d95ziJHYSTp";
+        let private_key = Keygen::parsing_private_key(sk)?;
+        let public_key = Keygen::pk_from_sk(&private_key);
+
+        println!("");
+        println!("test_gen_regtest");
+        let p2tr_addr = Keygen::p2tr_addr_from_pk(public_key.clone(), Network::Regtest).unwrap();
+        let p2wpkh_addr = Keygen::p2wpkh_addr_from_pk(&public_key, Network::Regtest).unwrap();
+        let p2pkh_addr = Keygen::p2pkh_addr_from_pk(public_key.clone(), Network::Regtest).unwrap();
+        println!("p2tr_addr: {}", p2tr_addr.to_string());
+        println!("p2wpkh_addr: {}", p2wpkh_addr.to_string());
+        println!("p2pkh_addr: {}", p2pkh_addr.to_string());
+
+        Ok(())
     }
 }
