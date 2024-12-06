@@ -218,7 +218,7 @@ fn test_sign_taproot_ab_to_c() -> anyhow::Result<()> {
 
     // 1. pre utxo_a
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
-    let pre_txid_a = "8a98e00760c4101a3c6a7f7eb81d3309e8694c8bb9716c11486758b315310e6a";
+    let pre_txid_a = "37e180a1300f99172c6b93f7ae8c9ade4e69bd262b2664869246784fc8d78a63";
     let pre_vout_a = 0;
     let amount_in_sats_a = Amount::from_btc(25.0).unwrap();
     // Get a keypair we control. In a real application these would come from a stored secret.
@@ -234,7 +234,7 @@ fn test_sign_taproot_ab_to_c() -> anyhow::Result<()> {
 
     // 2. pre utxo_b
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1p0p3rvwww0v9znrclp00uneq8ytre9kj922v8fxhnezm3mgsmn9usdxaefc"]'
-    let pre_txid_b = "8dbeb617476dc5953c0b320908bddf292e3878cc884d3c2bc2b4f6d286d4e76f";
+    let pre_txid_b = "37ad78206c7a336aba8a3dfda739df313dfa23b1093fef5f78b952e6591bea6d";
     let pre_vout_b = 0;
     let amount_in_sats_b = Amount::from_btc(25.0).unwrap();
     // Get a keypair we control. In a real application these would come from a stored secret.
@@ -319,9 +319,154 @@ fn test_sign_taproot_ab_to_c() -> anyhow::Result<()> {
 
     // 5.2 signed by b
     let input_index_b = 1;
-    let sighash_type = TapSighashType::AllPlusAnyoneCanPay;
+
+    // let sighash_type = TapSighashType::AllPlusAnyoneCanPay;// this work also
+    let sighash_type = TapSighashType::All;
     let sighash = sighasher
         .taproot_key_spend_signature_hash(input_index_b, &prevouts, sighash_type)
+        .expect("failed to construct sighash");
+    // Sign the sighash using the secp256k1 library (exported by rust-bitcoin).
+    let tweaked_b: TweakedKeypair = keypair_b.tap_tweak(&secp, None);
+    let msg = Message::from(sighash);
+    let signature_b = secp.sign_schnorr(&msg, &tweaked_b.to_inner());
+
+    // Update the witness stack.
+    let signature_b = bitcoin::taproot::Signature {
+        signature: signature_b,
+        sighash_type,
+    };
+    *sighasher.witness_mut(input_index_b).unwrap() = Witness::p2tr_key_spend(&signature_b);
+
+    // Get the signed transaction.
+    let tx = sighasher.into_transaction();
+    let txid = tx.compute_txid();
+    let tx_hex_str = encode::serialize_hex(&tx);
+
+    // BOOM! Transaction signed and ready to broadcast.
+    println!("tx_id {:?}", txid);
+    println!("tx_str {:?}", tx_hex_str);
+
+    Ok(())
+}
+
+#[test]
+fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
+    let secp = Secp256k1::new();
+    // 1. pre utxo_a
+    // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
+    let pre_txid_a = "ff8854374435da6afc26d532ef69b91cb938c247d6b1bbac411e151fb508d548";
+    let pre_vout_a = 0;
+    let amount_in_sats_a = Amount::from_btc(25.0).unwrap();
+    // pre utxo_b
+    // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1p0p3rvwww0v9znrclp00uneq8ytre9kj922v8fxhnezm3mgsmn9usdxaefc"]'
+    let pre_txid_b = "fd6349e15abc0438a4b2f7c57a54392514f84d8335324a3a4c5fc13f2422d068";
+    let pre_vout_b = 0;
+    let amount_in_sats_b = Amount::from_btc(25.0).unwrap();
+    ///////////////////////////////////////////////////
+    ////////// sign a
+    ///////////////////////////////////////////////////
+    // Get a keypair we control. In a real application these would come from a stored secret.
+    let keypair_a = senders_keys(&secp, USER_A_PRIVATE_KEY);
+    let (internal_key_a, _parity) = keypair_a.x_only_public_key();
+    let (dummy_out_point_a, dummy_utxo_a) = dummy_unspent_transaction_output(
+        &secp,
+        internal_key_a,
+        pre_txid_a,
+        pre_vout_a,
+        amount_in_sats_a,
+    );
+
+    // 2. Get an address to send to.
+    let reciever_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
+    let reciever_address_c = Keygen::p2tr_addr_from_pk(reciever_pk_c, Network::Regtest)?;
+
+    // 3. consturct txin & change
+    // The input for the transaction we are constructing.
+    let input_a = TxIn {
+        previous_output: dummy_out_point_a, // The dummy output we are spending.
+        script_sig: ScriptBuf::default(),   // For a p2tr script_sig is empty.
+        sequence: Sequence::MAX,
+        witness: Witness::default(), // Filled in after signing.
+    };
+    // user.a pay spend,
+    let change_a = TxOut {
+        value: dummy_utxo_a.value.unchecked_sub(SPEND_AMOUNT), // to c,
+        script_pubkey: ScriptBuf::new_p2tr(&secp, internal_key_a, None), // Change comes back to us.
+    };
+
+    // The transaction we want to sign and broadcast.
+    let mut unsigned_tx = Transaction {
+        version: transaction::Version::TWO,  // Post BIP-68.
+        lock_time: absolute::LockTime::ZERO, // Ignore the locktime.
+        input: vec![input_a],                // Input goes into index 0.
+        output: vec![change_a],              // Outputs, order does not matter.
+    };
+
+    let prevouts = vec![dummy_utxo_a];
+    let prevouts = Prevouts::All(&prevouts);
+
+    // 5. sign
+    let mut sighasher = SighashCache::new(&mut unsigned_tx);
+    // 5.1 signed by a
+    let input_index_a = 0;
+    let sighash_type = TapSighashType::Single;
+    let sighash = sighasher
+        .taproot_key_spend_signature_hash(input_index_a, &prevouts, sighash_type)
+        .expect("failed to construct sighash");
+    // Sign the sighash using the secp256k1 library (exported by rust-bitcoin).
+    let tweaked_a: TweakedKeypair = keypair_a.tap_tweak(&secp, None);
+    let msg = Message::from(sighash);
+    let signature_a = secp.sign_schnorr(&msg, &tweaked_a.to_inner());
+
+    // Update the witness stack.
+    let signature_a = bitcoin::taproot::Signature {
+        signature: signature_a,
+        sighash_type,
+    };
+    *sighasher.witness_mut(input_index_a).unwrap() = Witness::p2tr_key_spend(&signature_a);
+    let mut presigned_tx = sighasher.into_transaction().to_owned();
+    let presigned_tx_hex_str = encode::serialize_hex(&presigned_tx);
+    println!("presigned_tx: {:?}", presigned_tx_hex_str);
+
+    // 2. pre utxo_b
+    // Get a keypair we control. In a real application these would come from a stored secret.
+    let keypair_b = senders_keys(&secp, USER_B_PRIVATE_KEY);
+    let (internal_key_b, _parity) = keypair_b.x_only_public_key();
+    let (dummy_out_point_b, dummy_utxo_b) = dummy_unspent_transaction_output(
+        &secp,
+        internal_key_b,
+        pre_txid_b,
+        pre_vout_b,
+        amount_in_sats_b,
+    );
+    // user.b pay gas
+    let change_b = TxOut {
+        value: dummy_utxo_b.clone().value.unchecked_sub(GAS_FEE),
+        script_pubkey: ScriptBuf::new_p2tr(&secp, internal_key_b, None), // Change comes back to us.
+    };
+    let input_b = TxIn {
+        previous_output: dummy_out_point_b, // The dummy output we are spending.
+        script_sig: ScriptBuf::default(),   // For a p2tr script_sig is empty.
+        sequence: Sequence::MAX,
+        witness: Witness::default(), // Filled in after signing.
+    };
+    // The spend output is locked to a key controlled by the receiver.
+    let spend_c = TxOut {
+        value: SPEND_AMOUNT,
+        script_pubkey: reciever_address_c.script_pubkey(),
+    };
+    presigned_tx.input.push(input_b);
+    presigned_tx.output.extend(vec![change_b, spend_c]);
+
+    let prevouts_b = vec![dummy_utxo_b; 2];
+    let prevouts_b = Prevouts::All(&prevouts_b);
+    // 5.2 signed by b
+    let input_index_b = 1;
+    // let sighash_type = TapSighashType::AllPlusAnyoneCanPay;// this work also
+    let mut sighasher = SighashCache::new(&mut presigned_tx);
+    let sighash_type_b = TapSighashType::AllPlusAnyoneCanPay;
+    let sighash = sighasher
+        .taproot_key_spend_signature_hash(input_index_b, &prevouts_b, sighash_type_b)
         .expect("failed to construct sighash");
     // Sign the sighash using the secp256k1 library (exported by rust-bitcoin).
     let tweaked_b: TweakedKeypair = keypair_b.tap_tweak(&secp, None);
