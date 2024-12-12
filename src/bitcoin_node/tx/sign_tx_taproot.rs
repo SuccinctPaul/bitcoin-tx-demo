@@ -21,10 +21,10 @@ use bitcoin::{
 };
 
 // const DUMMY_UTXO_AMOUNT: Amount = Amount::from_sat(20_000_000);
-const SPEND_AMOUNT: Amount = Amount::from_sat(5_000_000);
+pub(crate) const SPEND_AMOUNT: Amount = Amount::from_sat(5_000_000);
 // const CHANGE_AMOUNT: Amount = Amount::from_sat(14_999_000); // 1000 sat fee.
 
-const GAS_FEE: Amount = Amount::from_sat(1_000);
+pub(crate) const GAS_FEE: Amount = Amount::from_sat(1_000);
 
 #[test]
 fn test_sign_taproot_a_to_b_only() -> anyhow::Result<()> {

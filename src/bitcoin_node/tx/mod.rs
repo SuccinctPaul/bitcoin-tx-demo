@@ -4,8 +4,11 @@ use bitcoin::{Amount, OutPoint, ScriptBuf, TxOut, Txid};
 use secp256k1::{Keypair, Secp256k1, Signing, Verification};
 use std::str::FromStr;
 
-mod presing_taproot;
-pub mod sign_taproot;
+mod presing_tx_taproot;
+pub mod sign_tx_taproot;
+pub mod taproot_tree_tx;
+mod taproot_tx;
+// mod test;
 
 // User BTC regtest info:
 // -rpcwallet=benefactor

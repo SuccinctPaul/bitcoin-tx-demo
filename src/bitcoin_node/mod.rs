@@ -1,5 +1,4 @@
 use crate::bitcoin_node::config::BitcoinConfig;
-use bitcoin::PrivateKey;
 
 pub mod account;
 pub mod config;
