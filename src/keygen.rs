@@ -138,10 +138,11 @@ mod test {
 
     #[test]
     fn test_gen_regtest_addr_by_sk() -> anyhow::Result<()> {
-        let sk = "tprv8jzau9CfsdkXPkVBGi313RjQvsXggNwC4SZEBm3ohYAHQrHvBBG9GrPwMRWmzvB2UgkH7vEEjoMwia8kiY1jo6FzeshAfEw8d95ziJHYSTp";
+        let sk = "tprv8kpW9A9EhycN2QsL8UvvfARxvd1w5aq971AKmJNsRDPWpqNX41d1kdscpK5uT9HrNG9hfLqfjFkwqRXpN7cL2EBfyvb6BZjEBACDsaJQPzW";
         let private_key = Keygen::parsing_private_key(sk)?;
         let public_key = Keygen::pk_from_sk(&private_key);
-
+        println!("public_key: {}", public_key.to_string());
+        // println!("public_key: {}", public_key..to_string());
         println!("");
         println!("test_gen_regtest");
         let p2tr_addr = Keygen::p2tr_addr_from_pk(public_key.clone(), Network::Regtest).unwrap();

@@ -54,8 +54,8 @@ fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     );
 
     // 2. Get an address to send to.
-    let reciever_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
-    let reciever_address_c = Keygen::p2tr_addr_from_pk(reciever_pk_c, Network::Regtest)?;
+    let receiver_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
+    let receiver_address_c = Keygen::p2tr_addr_from_pk(receiver_pk_c, Network::Regtest)?;
 
     // 3. consturct txin & change
     // The input for the transaction we are constructing.
@@ -130,7 +130,7 @@ fn test_sign_taproot_ab_to_c_with_preign_a() -> anyhow::Result<()> {
     // The spend output is locked to a key controlled by the receiver.
     let spend_c = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_c.script_pubkey(),
+        script_pubkey: receiver_address_c.script_pubkey(),
     };
     presigned_tx.input.push(input_b);
     presigned_tx.output.extend(vec![change_b, spend_c]);
@@ -207,8 +207,8 @@ fn test_sign_taproot_ab_to_c_with_presigned_ab() -> anyhow::Result<()> {
     );
 
     // 3. Get an address to send to.
-    let reciever_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
-    let reciever_address_c = Keygen::p2tr_addr_from_pk(reciever_pk_c, Network::Regtest)?;
+    let receiver_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
+    let receiver_address_c = Keygen::p2tr_addr_from_pk(receiver_pk_c, Network::Regtest)?;
 
     ///////////////////////////////////////////////
     ///////// 1.construct presign tx by A & B
@@ -298,7 +298,7 @@ fn test_sign_taproot_ab_to_c_with_presigned_ab() -> anyhow::Result<()> {
     // The spend output is locked to a key controlled by the receiver.
     let spend_c = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_c.script_pubkey(),
+        script_pubkey: receiver_address_c.script_pubkey(),
     };
 
     presigned_tx.output.push(spend_c);
@@ -390,19 +390,19 @@ fn test_sign_taproot_a_to_bc_with_presiend_a() -> anyhow::Result<()> {
     ///////////////////////////////////////////////
 
     // Get an address to send to.
-    let reciever_pk_b = PublicKey::from_str(USER_B_PUBLIC_KEY)?;
-    let reciever_address_b = Keygen::p2tr_addr_from_pk(reciever_pk_b, Network::Regtest)?;
+    let receiver_pk_b = PublicKey::from_str(USER_B_PUBLIC_KEY)?;
+    let receiver_address_b = Keygen::p2tr_addr_from_pk(receiver_pk_b, Network::Regtest)?;
     // Get an address to send to.
-    let reciever_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
-    let reciever_address_c = Keygen::p2tr_addr_from_pk(reciever_pk_c, Network::Regtest)?;
+    let receiver_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
+    let receiver_address_c = Keygen::p2tr_addr_from_pk(receiver_pk_c, Network::Regtest)?;
     // The spend output is locked to a key controlled by the receiver.
     let spend_b = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_b.script_pubkey(),
+        script_pubkey: receiver_address_b.script_pubkey(),
     };
     let spend_c = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_c.script_pubkey(),
+        script_pubkey: receiver_address_c.script_pubkey(),
     };
     presigned_tx.output.extend(vec![spend_b, spend_c]);
 

@@ -4,8 +4,12 @@ use bitcoin::{Amount, OutPoint, ScriptBuf, TxOut, Txid};
 use secp256k1::{Keypair, Secp256k1, Signing, Verification};
 use std::str::FromStr;
 
-mod presing_taproot;
-pub mod sign_taproot;
+mod presing_tx_taproot;
+pub mod sign_tx_taproot;
+pub mod taproot_tree_tx;
+// mod taproot_tx;
+// mod aaa;
+// mod test;
 
 // User BTC regtest info:
 // -rpcwallet=benefactor
@@ -27,6 +31,10 @@ pub const USER_B_PUBLIC_KEY: &str =
 pub const USER_C_PRIVATE_KEY: &str = "tprv8jzau9CfsdkXPkVBGi313RjQvsXggNwC4SZEBm3ohYAHQrHvBBG9GrPwMRWmzvB2UgkH7vEEjoMwia8kiY1jo6FzeshAfEw8d95ziJHYSTp";
 pub const USER_C_PUBLIC_KEY: &str =
     "0385a34c3603c616afaa9da80ee2f354b8caf0308890193b4083cbdee09f998fd0";
+
+// It's a absolutely receiver addr
+pub const RECEIVER_ADDR_STR: &str =
+    "bcrt1p3ndyc0r2s4khcqka5vpeyt00ky378nk7mr6tmmja7yu6jg24uscq064uer";
 
 /// Creates a p2wpkh output locked to the key associated with `wpkh`.
 ///
@@ -68,7 +76,7 @@ pub fn senders_keys<C: Signing>(secp: &Secp256k1<C>, sk: &str) -> Keypair {
 
 #[cfg(test)]
 mod test {
-    use crate::bitcoin_node::tx::{USER_A_PRIVATE_KEY, USER_A_PUBLIC_KEY};
+    use crate::bitcoin_node::tx::{USER_A_PRIVATE_KEY, USER_A_PUBLIC_KEY, USER_B_PRIVATE_KEY};
     use crate::keygen::Keygen;
     use bitcoin::bip32::Xpriv;
     use bitcoin::{Network, PublicKey, ScriptBuf};

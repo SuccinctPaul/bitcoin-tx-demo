@@ -21,10 +21,10 @@ use bitcoin::{
 };
 
 // const DUMMY_UTXO_AMOUNT: Amount = Amount::from_sat(20_000_000);
-const SPEND_AMOUNT: Amount = Amount::from_sat(5_000_000);
+pub(crate) const SPEND_AMOUNT: Amount = Amount::from_sat(5_000_000);
 // const CHANGE_AMOUNT: Amount = Amount::from_sat(14_999_000); // 1000 sat fee.
 
-const GAS_FEE: Amount = Amount::from_sat(1_000);
+pub(crate) const GAS_FEE: Amount = Amount::from_sat(1_000);
 
 #[test]
 fn test_sign_taproot_a_to_b_only() -> anyhow::Result<()> {
@@ -40,8 +40,8 @@ fn test_sign_taproot_a_to_b_only() -> anyhow::Result<()> {
     // let sender_address = Keygen::p2tr_addr_from_pk(*keypair.public_key(), Network::Regtest)?;
 
     // Get an address to send to.
-    let reciever_pk = PublicKey::from_str(USER_B_PUBLIC_KEY)?;
-    let reciever_address = Keygen::p2tr_addr_from_pk(reciever_pk, Network::Regtest)?;
+    let receiver_pk = PublicKey::from_str(USER_B_PUBLIC_KEY)?;
+    let receiver_address = Keygen::p2tr_addr_from_pk(receiver_pk, Network::Regtest)?;
 
     // Get an unspent output that is locked to the key above that we control.
     // In a real application these would come from the chain.
@@ -59,7 +59,7 @@ fn test_sign_taproot_a_to_b_only() -> anyhow::Result<()> {
     // The spend output is locked to a key controlled by the receiver.
     let spend = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address.script_pubkey(),
+        script_pubkey: receiver_address.script_pubkey(),
     };
 
     // The change output is locked to a key controlled by us.
@@ -82,7 +82,7 @@ fn test_sign_taproot_a_to_b_only() -> anyhow::Result<()> {
 
     // Get the sighash to sign.
 
-    let sighash_type = TapSighashType::Default;
+    let sighash_type = TapSighashType::All;
     let prevouts = vec![dummy_utxo];
     let prevouts = Prevouts::All(&prevouts);
 
@@ -129,11 +129,11 @@ fn test_sign_taproot_a_to_bc() -> anyhow::Result<()> {
     // let sender_address = Keygen::p2tr_addr_from_pk(*keypair.public_key(), Network::Regtest)?;
 
     // Get an address to send to.
-    let reciever_pk_b = PublicKey::from_str(USER_B_PUBLIC_KEY)?;
-    let reciever_address_b = Keygen::p2tr_addr_from_pk(reciever_pk_b, Network::Regtest)?;
+    let receiver_pk_b = PublicKey::from_str(USER_B_PUBLIC_KEY)?;
+    let receiver_address_b = Keygen::p2tr_addr_from_pk(receiver_pk_b, Network::Regtest)?;
     // Get an address to send to.
-    let reciever_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
-    let reciever_address_c = Keygen::p2tr_addr_from_pk(reciever_pk_c, Network::Regtest)?;
+    let receiver_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
+    let receiver_address_c = Keygen::p2tr_addr_from_pk(receiver_pk_c, Network::Regtest)?;
 
     // Get an unspent output that is locked to the key above that we control.
     // In a real application these would come from the chain.
@@ -151,11 +151,11 @@ fn test_sign_taproot_a_to_bc() -> anyhow::Result<()> {
     // The spend output is locked to a key controlled by the receiver.
     let spend_b = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_b.script_pubkey(),
+        script_pubkey: receiver_address_b.script_pubkey(),
     };
     let spend_c = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_c.script_pubkey(),
+        script_pubkey: receiver_address_c.script_pubkey(),
     };
 
     // The change output is locked to a key controlled by us.
@@ -249,8 +249,8 @@ fn test_sign_taproot_ab_to_c() -> anyhow::Result<()> {
     );
 
     // 3. Get an address to send to.
-    let reciever_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
-    let reciever_address_c = Keygen::p2tr_addr_from_pk(reciever_pk_c, Network::Regtest)?;
+    let receiver_pk_c = PublicKey::from_str(USER_C_PUBLIC_KEY)?;
+    let receiver_address_c = Keygen::p2tr_addr_from_pk(receiver_pk_c, Network::Regtest)?;
 
     // Get an unspent output that is locked to the key above that we control.
     // In a real application these would come from the chain.
@@ -273,7 +273,7 @@ fn test_sign_taproot_ab_to_c() -> anyhow::Result<()> {
     // The spend output is locked to a key controlled by the receiver.
     let spend_c = TxOut {
         value: SPEND_AMOUNT,
-        script_pubkey: reciever_address_c.script_pubkey(),
+        script_pubkey: receiver_address_c.script_pubkey(),
     };
     // user.a pay spend,
     let change_a = TxOut {
