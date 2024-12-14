@@ -76,19 +76,16 @@ mod tests {
         println!("x_only_public_key: {:?}", x_only_public_key.serialize());
         let script_pubkey = ScriptBuf::new_p2tr(&secp, x_only_public_key, None);
         println!("script_pubkey: {:?}", script_pubkey.to_string());
-        let tweaked_committee_pk = x_only_public_key.tap_tweak(&secp, None).0;
-        println!(
-            "tweaked_committee_pk: {:?}",
-            tweaked_committee_pk.to_string()
-        );
+        let tweaked_pk = x_only_public_key.tap_tweak(&secp, None).0;
+        println!("tweaked_pk: {:?}", tweaked_pk.to_string());
         // 78623639ce7b0a298f1f0bdfc9e40722c792da455298749af3c8b71da21b9979
         assert_eq!(
-            tweaked_committee_pk.to_string(),
+            tweaked_pk.to_string(),
             "78623639ce7b0a298f1f0bdfc9e40722c792da455298749af3c8b71da21b9979"
         );
         assert_ne!(
             x_only_public_key.serialize().to_vec(),
-            tweaked_committee_pk.serialize().to_vec()
+            tweaked_pk.serialize().to_vec()
         );
     }
 

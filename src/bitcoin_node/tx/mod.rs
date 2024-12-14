@@ -18,14 +18,14 @@ pub const USER_A_PRIVATE_KEY: &str = "tprv8jzau9CfsdkXMzqWFWSgu7f4z1vRk53yiqYqBy
 pub const USER_A_PUBLIC_KEY: &str =
     "02a6ac32163539c16b6b5dbbca01b725b8e8acaa5f821ba42c80e7940062140d19";
 
-// Committee BTC regtest info:
+// BTC regtest info:
 // -rpcwallet=beneficiary
 // p2tr_addr: bcrt1p0p3rvwww0v9znrclp00uneq8ytre9kj922v8fxhnezm3mgsmn9usdxaefc
 pub const USER_B_PRIVATE_KEY: &str = "tprv8kpW9A9EhycN2QsL8UvvfARxvd1w5aq971AKmJNsRDPWpqNX41d1kdscpK5uT9HrNG9hfLqfjFkwqRXpN7cL2EBfyvb6BZjEBACDsaJQPzW";
 pub const USER_B_PUBLIC_KEY: &str =
     "03259ea961fd6bf615c7328ec9538cfc911d50c44f07cbe71bad0f9367e566cc1b";
 
-// Operator BTC regtest info:
+// BTC regtest info:
 // -rpcwallet=benefactor
 // p2tr_addr: bcrt1pmdx8nnpllj3x750zzfqmjvedv34swuka06vda8qau6csnyx2hq9s6p89qf
 pub const USER_C_PRIVATE_KEY: &str = "tprv8jzau9CfsdkXPkVBGi313RjQvsXggNwC4SZEBm3ohYAHQrHvBBG9GrPwMRWmzvB2UgkH7vEEjoMwia8kiY1jo6FzeshAfEw8d95ziJHYSTp";
