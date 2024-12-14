@@ -7,9 +7,6 @@ use std::str::FromStr;
 mod presing_tx_taproot;
 pub mod sign_tx_taproot;
 pub mod taproot_tree_tx;
-// mod taproot_tx;
-// mod aaa;
-// mod test;
 
 // User BTC regtest info:
 // -rpcwallet=benefactor
