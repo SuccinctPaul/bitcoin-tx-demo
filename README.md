@@ -11,9 +11,9 @@
 ![img.png](images/taproot-key-path-spend.png)
 
 > Reference: [taproot-key-path-spend](https://static.learnmeabitcoin.com/diagrams/png/taproot-key-path-spend.png)
-### taproot-key-path-spend
+### taproot-script-path-spend
 ![taproot-key-path-spend.png](images/taproot-script-path-spend.png)
-> Reference: [taproot-key-path-spend](https://static.learnmeabitcoin.com/diagrams/png/taproot-script-path-spend.png)
+> Reference: [taproot-script-path-spend](https://static.learnmeabitcoin.com/diagrams/png/taproot-script-path-spend.png)
 
 
 
