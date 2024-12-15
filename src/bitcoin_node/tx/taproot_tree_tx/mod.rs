@@ -11,6 +11,7 @@ use secp256k1::{Keypair, Secp256k1, XOnlyPublicKey};
 use std::str::FromStr;
 
 pub mod key_path_spend;
+pub mod key_path_spend_with_presign;
 pub mod script_path_spend;
 
 pub fn create_p2tr_address(tree: TaprootSpendInfo) -> Address {

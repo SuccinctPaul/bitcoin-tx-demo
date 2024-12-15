@@ -26,7 +26,7 @@ use std::str::FromStr;
 #[test]
 fn test_a_to_taproot_tree_addr() -> anyhow::Result<()> {
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
-    let pre_txid = "a3bb137d668556d9ccbb01e1dd6216ba139aba3c3866f0c891d4ba794537d271";
+    let pre_txid = "8a98e00760c4101a3c6a7f7eb81d3309e8694c8bb9716c11486758b315310e6a";
     let pre_vout = 0;
     let amount_in_sats = Amount::from_btc(25.0).unwrap();
 
@@ -108,100 +108,13 @@ fn test_a_to_taproot_tree_addr() -> anyhow::Result<()> {
     // BOOM! Transaction signed and ready to broadcast.
     println!("tx_id {:?}", txid);
     println!("tx_str {:?}", tx_hex_str);
-    // tx_id eadd615a91e83aa81c8eb670f4bcb44a6265288617086b48c81a8dc8b28b5084
-    // tx_str "0200000000010171d2374579bad491c8f066383cba9a13ba1662dde101bbccd95685667d13bba30000000000ffffffff02404b4c000000000022512092eb55895873bc9a200002ee94b9d65ccff9a133b147b0be481cb9caeb9cc8b9d8a9b69400000000225120be27fa8b1f5278faf82cab8da23e8761f8f9bd5d5ebebbb37e0e12a70d92dd160140813da642f242cced77f6b971274e7879f0ffe40c0fffd735ab564dbfe99b32e56b52a286dce540218eb966a5119ea2c2440bf9a6036cf0ad476173703ed9ed6c00000000"
+    // tx_id 5013596ac7b408f8eda62251989bd2872790b852b5992892f4301dc985f37573
+    // tx_str "020000000001016a0e3115b3586748116c71b98b4c69e809331db87e7f6a3c1a10c46007e0988a0000000000ffffffff02404b4c000000000022512092eb55895873bc9a200002ee94b9d65ccff9a133b147b0be481cb9caeb9cc8b9d8a9b69400000000225120be27fa8b1f5278faf82cab8da23e8761f8f9bd5d5ebebbb37e0e12a70d92dd1601401bf7d1b447097cf875d7fcd519dd704d2cf79fcaec3583c05886933beb16301ea98e7a0d6a7568c56ef5027e4d39350199a0f8bfd2057b19455d83857723e38a00000000"
     Ok(())
 }
 
 #[test]
-fn test_key_path_spend_taproot_tree_addr_to_a() -> anyhow::Result<()> {
-    // 1. pre tx
-    let prev_tx_id = "eadd615a91e83aa81c8eb670f4bcb44a6265288617086b48c81a8dc8b28b5084";
-    let prev_tx_hex_str = "0200000000010171d2374579bad491c8f066383cba9a13ba1662dde101bbccd95685667d13bba30000000000ffffffff02404b4c000000000022512092eb55895873bc9a200002ee94b9d65ccff9a133b147b0be481cb9caeb9cc8b9d8a9b69400000000225120be27fa8b1f5278faf82cab8da23e8761f8f9bd5d5ebebbb37e0e12a70d92dd160140813da642f242cced77f6b971274e7879f0ffe40c0fffd735ab564dbfe99b32e56b52a286dce540218eb966a5119ea2c2440bf9a6036cf0ad476173703ed9ed6c00000000";
-    let prev_tx = encode::deserialize_hex::<Transaction>(prev_tx_hex_str)?;
-    let taproot_addr_utxo = prev_tx.output[0].clone();
-
-    // 2. sender&receiver addr
-    let secp = Secp256k1::new();
-
-    // receiver addr
-    let receiver_addr = Address::from_str(RECEIVER_ADDR_STR)?.assume_checked();
-    // taproot tree, and related tree leaves
-    // let tree_leaves_scripts = gen_one_of_two_multi_sig_scripts(&secp);
-    let taproot_tree = create_taproot_tree(&secp);
-    let sender_addr = create_p2tr_address(taproot_tree.clone());
-
-    // taproot key internal keypair
-    let taproot_internal_keypair = senders_keys(&secp, USER_A_PRIVATE_KEY);
-    let taproot_internal_keypair_tweaked: TweakedKeypair =
-        taproot_internal_keypair.tap_tweak(&secp, Some(taproot_tree.merkle_root().unwrap()));
-
-    // 3. key path spend
-    // 3.1: create psbt for key path spend.
-    let spend_utxo = TxOut {
-        value: SPEND_AMOUNT.checked_div(2).unwrap(),
-        script_pubkey: receiver_addr.script_pubkey(),
-    };
-    let change_utxo = TxOut {
-        value: taproot_addr_utxo
-            .value
-            .checked_sub(spend_utxo.value)
-            .unwrap()
-            .checked_sub(GAS_FEE)
-            .unwrap(),
-        script_pubkey: sender_addr.script_pubkey(),
-    };
-    let mut unsigned_tx = Transaction {
-        version: transaction::Version::TWO,  // Post BIP-68.
-        lock_time: absolute::LockTime::ZERO, // Ignore the locktime.
-        input: vec![TxIn {
-            previous_output: OutPoint {
-                txid: prev_tx_id.parse().unwrap(),
-                vout: 0,
-            },
-            script_sig: ScriptBuf::new(),
-            sequence: Sequence::MAX, // Ignore nSequence.
-            witness: Witness::default(),
-        }],
-        output: vec![spend_utxo, change_utxo],
-    };
-
-    // Get the sighash to sign.
-    let input_index = 0;
-    let sighash_type = TapSighashType::All;
-    let prevouts = vec![taproot_addr_utxo];
-    let prevouts = Prevouts::All(&prevouts);
-
-    let mut sighasher = SighashCache::new(&mut unsigned_tx);
-    let sighash = sighasher
-        .taproot_key_spend_signature_hash(input_index, &prevouts, sighash_type)
-        .expect("failed to construct sighash");
-
-    // Sign the sighash using the secp256k1 library (exported by rust-bitcoin).
-    let msg = Message::from(sighash);
-    let signature = secp.sign_schnorr(&msg, &taproot_internal_keypair_tweaked.to_inner());
-
-    // Update the witness stack.
-    let signature = bitcoin::taproot::Signature {
-        signature,
-        sighash_type,
-    };
-
-    *sighasher.witness_mut(input_index).unwrap() = Witness::p2tr_key_spend(&signature);
-
-    let tx = sighasher.into_transaction().to_owned();
-    let txid = tx.compute_txid();
-    let tx_hex_str = encode::serialize_hex(&tx);
-    println!("tx_hex_str {:?}", tx_hex_str);
-    println!("txid {:?}", txid.to_string());
-    // tx_hex_str "0200000000010184508bb2c88d1ac8486b0817862865624ab4bcf470b68e1ca83ae8915a61ddea0000000000ffffffff02a0252600000000002251208cda4c3c6a856d7c02dda303922defb123e3ceded8f4bdee5df139a92155e430b82126000000000022512092eb55895873bc9a200002ee94b9d65ccff9a133b147b0be481cb9caeb9cc8b901413fda560e05ff3757d5b23947e2a095a6e6faf605aeb645c1f3dc4990a79377b032db52c5c491b7ef9149fe54f4c5d204b93795101c7ec8d8b03bf1399a4c27910100000000"
-    // txid "55600b1e07b12171e71e2c26f7fb71b6114ed76755c4584a7a776c6890f8f3d1"
-
-    Ok(())
-}
-
-#[test]
-fn test_a_and_taproot_to_receiver() -> anyhow::Result<()> {
+fn test_key_path_spend_taproot_tree_addr_to_receiver() -> anyhow::Result<()> {
     // bitcoin-cli -regtest -rpcwallet=benefactor listunspent 99 199 '["bcrt1phcnl4zcl2fu047pv4wx6y058v8u0n02at6lthvm7pcf2wrvjm5tqatn90k"]'
     let pre_txid_a = "e541bb6234a521740b9fc730f42103a7216e2c2b51c09d45122b7351d39ba390";
     let pre_vout_a = 0;
